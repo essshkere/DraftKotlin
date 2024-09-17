@@ -1,34 +1,24 @@
 fun main() {
-    // сумма соврешенных переводов за день
-    val transferMonth = 1000 // сумма совершенных переводов за месяц
-    val currentTransfer = 80_000 // текущий перевод
-    val card = "Mastercard" //Mastercard Visa Мир
-    println(commissionCalc(card, currentTransfer, transferMonth))
+
 }
 
-fun commissionCalc(card: String, currentTransfer: Int, transferMonth: Int): Int {
-    val monthLimitMactercard = 75000
-    val monthlyTransfer = currentTransfer + transferMonth
-    val dayTransfer = currentTransfer
-    val commissionMastercard = 0.006
-    val commissionMastercardFix = 0.006
-    val commissionVisaMin = 35
-    val commissionVisaPercent = 0.0075
-    val monthLimit = 600_000
-    val dayLimit = 150_000
-    if (monthlyTransfer < monthLimit && dayTransfer < dayLimit) {
-        val commission = when (card) {
-            "Mastercard" -> if (monthlyTransfer < monthLimitMactercard) 0 else (currentTransfer * commissionMastercard + commissionMastercardFix).toInt()
-            "Visa" -> if (currentTransfer * commissionVisaPercent < commissionVisaMin) commissionVisaMin else (currentTransfer * commissionVisaPercent).toInt()
-            else -> {
-                0 // Мир
-            }
-        }
-        return commission
-//        "Ваша комиссия составит $commission руб.\n" +
-//                "Вы перевели за текущий день $dayTransfer руб.\n" +
-//                "Вы перевели за текущий месяц $monthlyTransfer руб.\n"
+class post(
+    val id: Int, //идентификатор записи
+    val owner_id: Int, // ид владельца стены
+    val from_id: Int // Идентификатор автора записи (от чьего имени опубликована запись)
+    val date: Int, //   Время публикации записи в формате unixtime.
+    val text: String,//    Текст записи.
+    val comments: comments = comments(0, true, true, true, true) //Информация о комментариях к записи, объект с полями
+    val post_type: String, //    Тип записи, может принимать следующие значения: post, copy, reply, postpone, suggest
+    val can_pin: Boolean//    Информация о том, может ли текущий пользователь закрепить запись (1 — может, 0 — не может).
+    val can_delete: Boolean, //Информация о том, может ли текущий пользователь удалить запись (1 — может, 0 — не может).
+    val can_edit: Boolean //Информация о том, может ли текущий пользователь редактировать запись (1 — может, 0 — не может).
+)
 
-    } else return -1
-//        return if (dayTransfer > dayLimit) "Перевод заблокирован, достигнут дневной лимит\n" + "Лимит: $dayLimit" else "Перевод заблокирован, достигнут месячный лимит\n" + "Лимит: $monthLimit"
-}
+class comments(
+    val count: Int, // — количество комментариев;
+    val can_post: Boolean, //— информация о том, может ли текущий пользователь комментировать запись (1 — может, 0 — не может);
+    val groups_can_post: Boolean, //— информация о том, могут ли сообщества комментировать запись;
+    val can_close: Boolean, //— может ли текущий пользователь закрыть комментарии к записи;
+    val can_open: Boolean //— может ли текущий пользователь открыть комментарии к записи.
+)
