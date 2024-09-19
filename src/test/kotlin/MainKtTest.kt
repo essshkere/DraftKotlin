@@ -1,90 +1,28 @@
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-
 class MainKtTest {
 
-
     @Test
-    fun commissionVisa() {
-
-        val transferMonth = 1000 // сумма совершенных переводов за месяц
-        val currentTransfer = 1000 // текущий перевод
-        val card = "Visa"
-
-        val result = commissionCalc(card, currentTransfer,  transferMonth)
-        assertEquals(35, result)
-
-    }
-
-    @Test
-    fun commissionMcPercent() {
-
-        val transferMonth = 1000 // сумма совершенных переводов за месяц
-        val currentTransfer = 1000 // текущий перевод
-        val card = "Mastercard"
-
-        val result = commissionCalc(card, currentTransfer,  transferMonth)
-        assertEquals(0, result)
-
-    }
-
-    @Test
-    fun commissionMCzero() {
-
-        val transferMonth = 1000 // сумма совершенных переводов за месяц
-        val currentTransfer = 80_000 // текущий перевод
-        val card = "Mastercard"
-
-        val result = commissionCalc(card, currentTransfer,  transferMonth)
-        assertEquals(480, result)
-
-    }
-
-    @Test
-    fun commissionVisaPercent() {
-
-        val transferMonth = 1000 // сумма совершенных переводов за месяц
-        val currentTransfer = 70_000 // текущий перевод
-        val card = "Visa"
-
-        val result = commissionCalc(card, currentTransfer,  transferMonth)
-        assertEquals(525, result)
-
+    fun addTest() {
+        val addedPost = WallService.add(Post())
+        val addedPost2 = WallService.add(Post())
+        val idTest = addedPost2.id
+        assertEquals(2, idTest)
     }
     @Test
-    fun commissionMir() {
+    fun updateTestTrue() {
+        val addedPost = WallService.add(Post())
+        val result = WallService.update(1,2,2,4,"5", Comments(), "6", false,true,false)
 
-        val transferMonth = 1000 // сумма совершенных переводов за месяц
-        val currentTransfer = 70_000 // текущий перевод
-        val card = "Мир"
-
-        val result = commissionCalc(card, currentTransfer,  transferMonth)
-        assertEquals(0, result)
-
+        assertEquals(true, result)
     }
     @Test
-    fun commissionDayLimit() {
+    fun updateTestFalse() {
+        val addedPost = WallService.add(Post())
+        val result = WallService.update(6,2,3,4,"5", Comments(), "6", false,true,false)
 
-        val transferMonth = 1000 // сумма совершенных переводов за месяц
-        val currentTransfer = 200000 // текущий перевод
-        val card = "Мир"
-
-        val result = commissionCalc(card, currentTransfer,  transferMonth)
-        assertEquals(-1, result)
-
-    }
-
-    @Test
-    fun commissionMonthLimit() {
-
-        val transferMonth = 1000 // сумма совершенных переводов за месяц
-        val currentTransfer = 700000 // текущий перевод
-        val card = "Мир"
-
-        val result = commissionCalc(card, currentTransfer,  transferMonth)
-        assertEquals(-1, result)
-
+        assertEquals(false, result)
     }
 
 
