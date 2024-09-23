@@ -5,6 +5,13 @@ fun main() {
     val addedPost2 = WallService.add(newPost2)
     println(newPost)
     println(newPost2)
+    val post = Post(
+        ownerId = 5,
+        attachments = listOf(
+            AudioAttachment(1, 123, "Artist", "Song", 180),
+            VideoAttachment(2, 456, "Video Title", "Description", 120)
+        )
+    )
 
 }
 
@@ -19,7 +26,7 @@ data class Post(
     val canPin: Boolean = false,//    Информация о том, может ли текущий пользователь закрепить запись (1 — может, 0 — не может).
     val canDelete: Boolean = false, //Информация о том, может ли текущий пользователь удалить запись (1 — может, 0 — не может).
     val canEdit: Boolean = false,//Информация о том, может ли текущий пользователь редактировать запись (1 — может, 0 — не может).
-    val attachments: Attachments? = null
+    val attachments: List<Any> = emptyList() // Список вложений
 )
 
 class Comments(
@@ -72,50 +79,46 @@ object WallService {
     }
 }
 
-interface Attachments {
-    val type: String
-}
+class AudioAttachment(
 
-class Audio(
-    override val type: String,
     val id: Int = 0, // Идентификатор аудиозаписи.
     val ownerId: Int = 0,//Идентификатор владельца аудиозаписи.
     val artist: String = "0",//Исполнитель.
     val title: String = "0",  //Название композиции.
     val duration: Int = 0  //Длительность аудиозаписи в секундах.
-) : Attachments {}
+) {}
 
-class Video(
-    override val type: String,
+class VideoAttachment(
+
     val id: Int = 0,// Идентификатор видеозаписи.
     val ownerId: Int = 0, //Идентификатор владельца видеозаписи.
     val title: String = "0",// Название видеозаписи.
     val description: String = "0", //Текст описания видеозаписи.
     val duration: Int = 0//Длительность ролика в секундах.
-) : Attachments {}
+) {}
 
-class File(
-    override val type: String,
+class FileAttachment(
+
     val id: Int = 0,// Идентификатор файла.
     val ownerId: Int = 0, //Идентификатор пользователя, загрузившего файл.
     val title: String = "0",//Название файла.
     val size: Int = 0,// Размер файла в байтах.
     val ext: String = "0" //Расширение файла
-) : Attachments {}
+) {}
 
-class Photo(
-    override val type: String,
+class PhotoAttachment(
+
     val id: Int = 0, //Идентификатор фотографии.
     val albumId: Int = 0, //Идентификатор альбома, в котором находится фотография.
     val ownerId: Int = 0, //Идентификатор владельца фотографии.
     val userId: Int = 0, //Идентификатор пользователя, загрузившего фото (если фотография размещена в сообществе). Для фотографий, размещенных от имени сообщества, user_id = 100.
     val text: String = "0"//Текст описания фотографии.
-): Attachments {}
+) {}
 
-class Sticker (
-    override val type: String,
+class StickerAttachment(
+
     val innerType: String = "0",// Тип, который описывает вариант формата ответа. По умолчанию: "base_sticker_new"
     val stickerId: Int = 0,// Идентификатор стикера
     val productId: Int = 0,// Идентификатор набора
     val isAllowed: Boolean = false//Информация о том, доступен ли стикер
-): Attachments {}
+) {}
