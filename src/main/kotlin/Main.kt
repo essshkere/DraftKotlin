@@ -1,124 +1,142 @@
 fun main() {
-    val newPost = Post(ownerId = 5)
-    val addedPost = WallService.add(newPost)
-    val newPost2 = Post(ownerId = 6)
-    val addedPost2 = WallService.add(newPost2)
-    println(newPost)
-    println(newPost2)
-    val post = Post(
-        ownerId = 5,
-        attachments = listOf(
-            AudioAttachment(1, 123, "Artist", "Song", 180),
-            VideoAttachment(2, 456, "Video Title", "Description", 120)
-        )
-    )
+    val notesManager = Notes()
+    val note1 = Note(0, "", "")
+    notesManager.add(note1)
+    println()
 
 }
 
-data class Post(
-    var id: Int = 0, //идентификатор записи
-    val ownerId: Int = 0, // ид владельца стены
-    val fromId: Int = 0, // Идентификатор автора записи от чьего имени опубликована запись
-    val date: Int = 0, //   Время публикации записи в формате unixtime.
-    val text: String? = "0",//    Текст записи.
-    val comments: Comments = Comments(),//Информация о комментариях к записи, объект с полями
-    val postType: String = "0", //    Тип записи, может принимать следующие значения: post, copy, reply, postpone, suggest
-    val canPin: Boolean = false,//    Информация о том, может ли текущий пользователь закрепить запись (1 — может, 0 — не может).
-    val canDelete: Boolean = false, //Информация о том, может ли текущий пользователь удалить запись (1 — может, 0 — не может).
-    val canEdit: Boolean = false,//Информация о том, может ли текущий пользователь редактировать запись (1 — может, 0 — не может).
-    val attachments: List<Any> = emptyList() // Список вложений
+data class Note(
+    var noteId: Int,  // айди заметки
+    val title: String, // заголовок заметки
+    val text: String, // текст заметки
+    val comments: Comment = Comment() // комментарии к записи
 )
 
-class Comments(
-    val count: Int = 0, // — количество комментариев;
+data class Comment(
+    var count: Int = 0, // — количество комментариев;
     val canPost: Boolean = false, //— информация о том, может ли текущий пользователь комментировать запись (1 — может, 0 — не может);
     val groupsCanPost: Boolean = false, //— информация о том, могут ли сообщества комментировать запись;
     val canClose: Boolean = false, //— может ли текущий пользователь закрыть комментарии к записи;
     val canOpen: Boolean = false  //— может ли текущий пользователь открыть комментарии к записи.
 )
 
-object WallService {
-    private var posts = emptyArray<Post>()
-    fun add(post: Post): Post {
-        posts += post
-        post.id = if (posts.isEmpty()) 1 else posts.maxOf { it.id } + 1
-        return posts.last()
+data class CommentDelete(
+    var count: Int = 0, // — количество комментариев;
+    val canPost: Boolean = false, //— информация о том, может ли текущий пользователь комментировать запись (1 — может, 0 — не может);
+    val groupsCanPost: Boolean = false, //— информация о том, могут ли сообщества комментировать запись;
+    val canClose: Boolean = false, //— может ли текущий пользователь закрыть комментарии к записи;
+    val canOpen: Boolean = false  //— может ли текущий пользователь открыть комментарии к записи.
+)
+
+public interface MutableCollections<E> : MutableCollection<E> {
+    fun add(note: Note): Boolean//Создает новую заметку у текущего пользователя.
+    fun createComment(comment: Comment): Boolean// Добавляет новый комментарий к заметке.
+    fun delete(noteId: Int): Boolean//Удаляет заметку текущего пользователя.
+    fun deleteComment(count: Int): Boolean// Удаляет комментарий к заметке.
+    fun edit(noteId: Int, editNote: Note): Boolean// Редактирует заметку текущего пользователя.
+    fun editComment(count: Int, editComment: Comment): Boolean// Редактирует указанный комментарий у заметки.
+    fun get() //Возвращает список заметок, созданных пользователем.
+    fun getById(noteId: Int ) : Note  //Возвращает заметку по её id.
+    fun getComments(count: Int ) : Comment// Возвращает список комментариев к заметке.
+    fun restoreComment(count: E) //Восстанавливает удалённый комментарий.
+}
+
+class Notes : MutableCollections<Note> {
+    private val notes = mutableListOf<Note>()
+    private val comments = mutableListOf<Comment>()
+    private var iNote = 0
+    private var iCom = 0
+
+    override fun add(note: Note): Boolean {
+        val result = notes.add(note)
+        note.noteId = iNote++
+        return result
     }
 
-    fun update(
-        id: Int,
-        ownerId: Int,
-        fromId: Int,
-        date: Int,
-        text: String,
-        comments: Comments = Comments(),
-        postType: String,
-        canPin: Boolean,
-        canDelete: Boolean,
-        canEdit: Boolean
-    ): Boolean {
-//        var result: Boolean
-        for ((index, post) in posts.withIndex()) {
-            if (post.id == id) {
-                posts[index] = post.copy(
-                    id = id,
-                    ownerId = ownerId,
-                    fromId = fromId,
-                    date = date,
-                    text = text,
-                    comments = comments,
-                    postType = postType,
-                    canPin = canPin,
-                    canDelete = canDelete,
-                    canEdit = canEdit
-                )
+    override fun createComment(comment: Comment): Boolean {
+        val result = comments.add(comment)
+        comment.count = iCom++
+        return result
+    }
+
+    override fun delete(noteId: Int): Boolean {
+        val iterator = notes.iterator()
+        while (iterator.hasNext()) {
+            val note = iterator.next()
+            if (note.noteId == noteId) {
+                iterator.remove()
                 return true
             }
         }
         return false
     }
-}
 
-class AudioAttachment(
+    override fun deleteComment(count: Int): Boolean {
+        val iterator = comments.iterator()
+        while (iterator.hasNext()) {
+            val comment = iterator.next()
+            if (comment.count == count) {
+                iterator.remove()
+                return true
+            }
+        }
+        return false
+    }
 
-    val id: Int = 0, // Идентификатор аудиозаписи.
-    val ownerId: Int = 0,//Идентификатор владельца аудиозаписи.
-    val artist: String = "0",//Исполнитель.
-    val title: String = "0",  //Название композиции.
-    val duration: Int = 0  //Длительность аудиозаписи в секундах.
-) {}
+    override fun editComment(count: Int, editComment: Comment): Boolean {
+        val iterator = comments.iterator()
+        while (iterator.hasNext()) {
+            val comment = iterator.next()
+            if (comment.count == count) {
+                iterator.remove()
+                comments.add(editComment.copy(count = count))
+                return true
+            }
+        }
+        return false
+    }
 
-class VideoAttachment(
+    override fun edit(noteId: Int, editNote: Note): Boolean {
+        val iterator = notes.iterator()
+        while (iterator.hasNext()) {
+            val note = iterator.next()
+            if (note.noteId == noteId) {
+                iterator.remove()
+                notes.add(editNote.copy(noteId = noteId))
+                return true
+            }
+        }
+        return false
+    }
 
-    val id: Int = 0,// Идентификатор видеозаписи.
-    val ownerId: Int = 0, //Идентификатор владельца видеозаписи.
-    val title: String = "0",// Название видеозаписи.
-    val description: String = "0", //Текст описания видеозаписи.
-    val duration: Int = 0//Длительность ролика в секундах.
-) {}
+    override fun getById(noteId: Int ) : Note{
+        val iterator = notes.iterator()
+        while (iterator.hasNext()) {
+            val note = iterator.next()
+            if (note.noteId == noteId) {
+                return note
+            }
+        }
+        throw PostNotFoundException("No note with id $noteId")
+    }
 
-class FileAttachment(
+    override fun getComments(count: Int ) : Comment{
+        val iterator = comments.iterator()
+        while (iterator.hasNext()) {
+            val comment = iterator.next()
+            if (comment.count == count) {
+                return comment
+            }
+        }
+        throw PostNotFoundException("No comment with id $count")
+    }
 
-    val id: Int = 0,// Идентификатор файла.
-    val ownerId: Int = 0, //Идентификатор пользователя, загрузившего файл.
-    val title: String = "0",//Название файла.
-    val size: Int = 0,// Размер файла в байтах.
-    val ext: String = "0" //Расширение файла
-) {}
+    }
 
-class PhotoAttachment(
 
-    val id: Int = 0, //Идентификатор фотографии.
-    val albumId: Int = 0, //Идентификатор альбома, в котором находится фотография.
-    val ownerId: Int = 0, //Идентификатор владельца фотографии.
-    val userId: Int = 0, //Идентификатор пользователя, загрузившего фото (если фотография размещена в сообществе). Для фотографий, размещенных от имени сообщества, user_id = 100.
-    val text: String = "0"//Текст описания фотографии.
-) {}
+class PostNotFoundException (message: String) :RuntimeException(message)
 
-class StickerAttachment(
 
-    val innerType: String = "0",// Тип, который описывает вариант формата ответа. По умолчанию: "base_sticker_new"
-    val stickerId: Int = 0,// Идентификатор стикера
-    val productId: Int = 0,// Идентификатор набора
-    val isAllowed: Boolean = false//Информация о том, доступен ли стикер
-) {}
+
+
