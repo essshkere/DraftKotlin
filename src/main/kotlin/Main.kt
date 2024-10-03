@@ -1,142 +1,83 @@
-fun main() {
-    val notesManager = Notes()
-    val note1 = Note(0, "", "")
-    notesManager.add(note1)
-    println()
-
+fun main(){
+    val noteService = ServiceCRUD<Note>()
+    val commentService = ServiceCRUD<Comment>()
+    val addedNote = noteService.create(Note())
+    val addedComment = commentService.create(Comment())
+    val addedNote2 = noteService.create(Note())
+    val addedComment2 = commentService.create(Comment())
 }
 
 data class Note(
-    var noteId: Int,  // айди заметки
-    val title: String, // заголовок заметки
-    val text: String, // текст заметки
-    val comments: Comment = Comment() // комментарии к записи
+    var id: Int = 0,
+    var text: String = "0",
+    val comment: Comment = Comment(),
+    var isDeleted: Boolean = false
 )
+
 
 data class Comment(
-    var count: Int = 0, // — количество комментариев;
-    val canPost: Boolean = false, //— информация о том, может ли текущий пользователь комментировать запись (1 — может, 0 — не может);
-    val groupsCanPost: Boolean = false, //— информация о том, могут ли сообщества комментировать запись;
-    val canClose: Boolean = false, //— может ли текущий пользователь закрыть комментарии к записи;
-    val canOpen: Boolean = false  //— может ли текущий пользователь открыть комментарии к записи.
+    var id: Int = 0,
+    val noteId: Int = 0,
+    var text: String = "0",
+    var isDeleted: Boolean = false
 )
 
-data class CommentDelete(
-    var count: Int = 0, // — количество комментариев;
-    val canPost: Boolean = false, //— информация о том, может ли текущий пользователь комментировать запись (1 — может, 0 — не может);
-    val groupsCanPost: Boolean = false, //— информация о том, могут ли сообщества комментировать запись;
-    val canClose: Boolean = false, //— может ли текущий пользователь закрыть комментарии к записи;
-    val canOpen: Boolean = false  //— может ли текущий пользователь открыть комментарии к записи.
-)
 
-public interface MutableCollections<E> : MutableCollection<E> {
-    fun add(note: Note): Boolean//Создает новую заметку у текущего пользователя.
-    fun createComment(comment: Comment): Boolean// Добавляет новый комментарий к заметке.
-    fun delete(noteId: Int): Boolean//Удаляет заметку текущего пользователя.
-    fun deleteComment(count: Int): Boolean// Удаляет комментарий к заметке.
-    fun edit(noteId: Int, editNote: Note): Boolean// Редактирует заметку текущего пользователя.
-    fun editComment(count: Int, editComment: Comment): Boolean// Редактирует указанный комментарий у заметки.
-    fun get() //Возвращает список заметок, созданных пользователем.
-    fun getById(noteId: Int ) : Note  //Возвращает заметку по её id.
-    fun getComments(count: Int ) : Comment// Возвращает список комментариев к заметке.
-    fun restoreComment(count: E) //Восстанавливает удалённый комментарий.
+interface Service<T> {
+    fun create(item: T): T
+    fun read(id: Int): T?
+    fun update(item: T): T?
+    fun delete(id: Int): Boolean
 }
 
-class Notes : MutableCollections<Note> {
-    private val notes = mutableListOf<Note>()
-    private val comments = mutableListOf<Comment>()
-    private var iNote = 0
-    private var iCom = 0
 
-    override fun add(note: Note): Boolean {
-        val result = notes.add(note)
-        note.noteId = iNote++
-        return result
+class ServiceCRUD<T>(private val items: MutableList<T> = mutableListOf()) : Service<T> {
+    private var i = 1
+
+    override fun create(item: T): T {
+        if (item is Note) {
+            item.id = i++
+        } else if (item is Comment) {
+            item.id = i++
+        }
+        items.add(item)
+        return item
     }
 
-    override fun createComment(comment: Comment): Boolean {
-        val result = comments.add(comment)
-        comment.count = iCom++
-        return result
+    override fun read(id: Int): T? {
+        return items.find {
+            if (it is Note) {
+                it.id == id
+            } else if (it is Comment) {
+                it.id == id
+            } else {
+                false
+            }
+        }
     }
 
-    override fun delete(noteId: Int): Boolean {
-        val iterator = notes.iterator()
-        while (iterator.hasNext()) {
-            val note = iterator.next()
-            if (note.noteId == noteId) {
-                iterator.remove()
+    override fun update(item: T): T? {
+        val index =
+            items.indexOfFirst { (it as? Note)?.id == (item as? Note)?.id || (it as? Comment)?.id == (item as? Comment)?.id }
+        if (index != -1) {
+            items[index] = item
+            return item
+        }
+        return null
+    }
+
+
+    override fun delete(id: Int): Boolean {
+        val item = read(id)
+        if (item != null) {
+            if (item is Note) {
+                item.isDeleted = true
+                return true
+            } else if (item is Comment) {
+                item.isDeleted = true
                 return true
             }
         }
         return false
     }
-
-    override fun deleteComment(count: Int): Boolean {
-        val iterator = comments.iterator()
-        while (iterator.hasNext()) {
-            val comment = iterator.next()
-            if (comment.count == count) {
-                iterator.remove()
-                return true
-            }
-        }
-        return false
-    }
-
-    override fun editComment(count: Int, editComment: Comment): Boolean {
-        val iterator = comments.iterator()
-        while (iterator.hasNext()) {
-            val comment = iterator.next()
-            if (comment.count == count) {
-                iterator.remove()
-                comments.add(editComment.copy(count = count))
-                return true
-            }
-        }
-        return false
-    }
-
-    override fun edit(noteId: Int, editNote: Note): Boolean {
-        val iterator = notes.iterator()
-        while (iterator.hasNext()) {
-            val note = iterator.next()
-            if (note.noteId == noteId) {
-                iterator.remove()
-                notes.add(editNote.copy(noteId = noteId))
-                return true
-            }
-        }
-        return false
-    }
-
-    override fun getById(noteId: Int ) : Note{
-        val iterator = notes.iterator()
-        while (iterator.hasNext()) {
-            val note = iterator.next()
-            if (note.noteId == noteId) {
-                return note
-            }
-        }
-        throw PostNotFoundException("No note with id $noteId")
-    }
-
-    override fun getComments(count: Int ) : Comment{
-        val iterator = comments.iterator()
-        while (iterator.hasNext()) {
-            val comment = iterator.next()
-            if (comment.count == count) {
-                return comment
-            }
-        }
-        throw PostNotFoundException("No comment with id $count")
-    }
-
-    }
-
-
-class PostNotFoundException (message: String) :RuntimeException(message)
-
-
-
-
+}
